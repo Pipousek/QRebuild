@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -26,8 +27,8 @@ jobs:
 
     - name: Install dependencies from requirements.txt
       run: |
-        python -m venv venv
-        source venv/bin/activate
+        python -m venv .venv
+        source .venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
         # Additional system dependencies for Linux
@@ -35,6 +36,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libzbar0
         fi
+
+    - name: DEBUG - Print files
+      run: |
+        echo ####################
+        ls -al .
+        echo ####################
+        ls -al .venv
+        echo ####################
 
     - name: Build applications
       run: |

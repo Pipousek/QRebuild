@@ -58,7 +58,7 @@ jobs:
 
     - name: Build applications
       run: |
-        source venv/bin/activate
+        source .venv/bin/activate
         pyinstaller cli.spec --noconfirm
         pyinstaller gui.spec --noconfirm
 

@@ -25,17 +25,28 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install dependencies from requirements.txt
+    - name: Create virtual environment
+      run: python -m venv .venv
+    
+    - name: Install Python dependencies (Windows)
+      if: runner.os == 'Windows'
       run: |
-        python -m venv .venv
+        .venv\Scripts\activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Install Python dependencies (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
         source .venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
-        # Additional system dependencies for Linux
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt-get update
-          sudo apt-get install -y libzbar0
-        fi
+    
+    - name: Install system dependencies (Linux only)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libzbar0
 
     - name: DEBUG - Print files
       run: |

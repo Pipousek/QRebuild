@@ -1,0 +1,102 @@
+name: Cross-Platform Standalone Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        default: '0.0.0'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies from requirements.txt
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        # Additional system dependencies for Linux
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y libzbar0
+        fi
+
+    - name: Build applications
+      run: |
+        source venv/bin/activate
+        pyinstaller cli.spec --noconfirm
+        pyinstaller gui.spec --noconfirm
+
+    - name: Prepare versioned artifacts
+      run: |
+        VERSION="${{ github.event.inputs.version || '0.0.0' }}"
+        mkdir -p release
+        
+        # Windows executables
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-$VERSION-Windows.exe"
+          cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-$VERSION-Windows.exe"
+        # macOS/Linux binaries
+        else
+          cp dist/QRebuild-CLI "release/QRebuild-CLI-$VERSION-$RUNNER_OS"
+          cp dist/QRebuild-GUI "release/QRebuild-GUI-$VERSION-$RUNNER_OS"
+          chmod +x "release/QRebuild-"*"-$VERSION-$RUNNER_OS"
+        fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: binaries-${{ runner.os }}
+        path: release/
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event.inputs.version != '0.0.0'
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        release_name: QRebuild ${{ github.event.inputs.version }}
+        files: |
+          artifacts/binaries-*/*
+        draft: false
+        prerelease: false
+
+    - name: Update Latest Tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Delete existing latest tag
+        curl -s -X DELETE \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/latest" || true
+        
+        # Create new latest tag
+        curl -s -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"ref": "refs/tags/latest", "sha": "${{ github.sha }}"}' \
+          "https://api.github.com/repos/${{ github.repository }}/git/refs"

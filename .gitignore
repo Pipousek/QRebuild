@@ -1,0 +1,13 @@
+# VSCode
+.vscode/
+.vscode/*
+
+# .venv
+.venv/
+.venv/*
+
+# Build & Dist
+dist/
+dist/*
+build/
+build/*

@@ -36,7 +36,7 @@ jobs:
         pip install -r requirements.txt
     
     - name: Install Python dependencies (Linux/macOS)
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux' || runner.os == 'macOS'
       run: |
         source .venv/bin/activate
         pip install --upgrade pip
@@ -46,21 +46,119 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libzbar0
-
-    - name: DEBUG - Print files
+        sudo apt install -y \
+          binutils \
+          libgl1 \
+          libegl1 \
+          libzbar0 \
+          libgthread-2.0-0 \
+          libxcb-cursor0 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-keysyms1 \
+          libxcb-render-util0 \
+          libxcb-xinerama0 \
+          libxkbcommon-x11-0 \
+          libqt6core6 libqt6gui6 libqt6widgets6 qt6-base-dev
+    
+    - name: Install system dependencies (macOS only)
+      if: runner.os == 'macOS'
       run: |
-        echo ####################
-        ls -al .
-        echo ####################
-        ls -al .venv
-        echo ####################
+        brew install \
+          qt6 \
+          zbar \
+          opencv \
+          libxkbcommon \
+          libxcb
 
-    - name: Build applications
+    - name: Build application - CLI (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        .venv/Scripts/activate
+        pyinstaller .\cli_main.py `
+          --onefile `
+          --icon="img/logo.ico" `
+          --add-data="img:img" `
+          --add-data="core:core" `
+          --add-binary=".venv\Lib\site-packages\pyzbar\libiconv.dll:." `
+          --add-binary=".venv\Lib\site-packages\pyzbar\libzbar-64.dll:." `
+          --name QRebuild-CLI
+
+    - name: Build application - GUI (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        .venv/Scripts/activate
+        pyinstaller .\gui_main.py `
+          --onefile `
+          --windowed `
+          --icon="img/logo.ico" `
+          --add-data="img:img" `
+          --add-data="core:core" `
+          --add-binary=".venv\Lib\site-packages\pyzbar\libiconv.dll:." `
+          --add-binary=".venv\Lib\site-packages\pyzbar\libzbar-64.dll:." `
+          --name QRebuild-GUI
+
+    - name: Build application - CLI (Linux)
+      if: runner.os == 'Linux'
       run: |
         source .venv/bin/activate
-        pyinstaller cli.spec --noconfirm
-        pyinstaller gui.spec --noconfirm
+        pyinstaller cli_main.py \
+          --onefile \
+          --icon="img/logo.png" \
+          --add-data="core:core" \
+          --add-data="cli:cli" \
+          --add-data="img:img" \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libGL.so.1:." \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libgthread-2.0.so.0:." \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libzbar.so.0:." \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libEGL.so.1:." \
+          --name QRebuild-CLI
+
+    - name: Build application - GUI (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        source .venv/bin/activate
+        pyinstaller gui_main.py \
+          --onefile \
+          --windowed \
+          --icon="img/logo.png" \
+          --add-data="core:core" \
+          --add-data="img:img" \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libGL.so.1:." \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libgthread-2.0.so.0:." \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libzbar.so.0:." \
+          --add-binary="/usr/lib/x86_64-linux-gnu/libEGL.so.1:." \
+          --add-data="/home/runner/work/QRebuild/QRebuild/.venv/lib/python3.12/site-packages/PyQt6/Qt6/plugins/platforms:PyQt6/Qt6/plugins/platforms" \
+          --collect-all PyQt6 \
+          --name QRebuild-CLI
+
+    - name: Build application - CLI (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        source .venv/bin/activate
+        pyinstaller cli_main.py \
+          --onefile \
+          --icon="img/logo.icns" \
+          --add-data="core:core" \
+          --add-data="cli:cli" \
+          --add-data="img:img" \
+          --add-binary="/opt/homebrew/lib/libzbar.dylib:." \
+          --name QRebuild-CLI
+
+    - name: Build application - GUI (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        source .venv/bin/activate
+        export QT_PLUGIN_PATH="$(brew --prefix qt6)/plugins"
+        pyinstaller gui_main.py \
+          --onefile \
+          --windowed \
+          --icon="img/logo.icns" \
+          --add-data="core:core" \
+          --add-data="img:img" \
+          --add-binary="/opt/homebrew/lib/libzbar.dylib:." \
+          --collect-all PyQt6 \
+          --name QRebuild-GUI
 
     - name: Prepare versioned artifacts
       run: |

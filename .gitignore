@@ -11,3 +11,11 @@ dist/
 dist/*
 build/
 build/*
+
+# Pycache
+**/__pycache__/
+**/__pycache__/*
+
+# .spec
+*.spec
+**/*.spec

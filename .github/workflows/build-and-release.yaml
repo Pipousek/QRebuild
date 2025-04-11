@@ -163,12 +163,14 @@ jobs:
     - name: Prepare versioned artifacts (Windows)
       if: runner.os == 'Windows'
       run: |
+        mkdir -p release
         cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-${{inputs.version}}-${{runner.os}}.exe"
         cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-${{inputs.version}}-${{runner.os}}.exe"
 
     - name: Prepare versioned artifacts (Windows)
       if: runner.os != 'Windows'
       run: |
+        mkdir -p release
         cp dist/QRebuild-CLI "release/QRebuild-CLI-${{inputs.version}}-${{runner.os}}"
         cp dist/QRebuild-GUI "release/QRebuild-GUI-${{inputs.version}}-${{runner.os}}"
 

@@ -1,5 +1,8 @@
 name: Cross-Platform Standalone Release
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:

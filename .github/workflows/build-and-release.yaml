@@ -192,10 +192,10 @@ jobs:
         path: artifacts
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ github.event.inputs.version }}
-        release_name: QRebuild ${{ github.event.inputs.version }}
+        name: QRebuild ${{ github.event.inputs.version }}
         files: |
           artifacts/binaries-*/*
         draft: false

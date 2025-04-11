@@ -130,7 +130,7 @@ jobs:
           --add-binary="/usr/lib/x86_64-linux-gnu/libEGL.so.1:." \
           --add-data="/home/runner/work/QRebuild/QRebuild/.venv/lib/python3.12/site-packages/PyQt6/Qt6/plugins/platforms:PyQt6/Qt6/plugins/platforms" \
           --collect-all PyQt6 \
-          --name QRebuild-CLI
+          --name QRebuild-GUI
 
     - name: Build application - CLI (macOS)
       if: runner.os == 'macOS'
@@ -160,21 +160,17 @@ jobs:
           --collect-all PyQt6 \
           --name QRebuild-GUI
 
-    - name: Prepare versioned artifacts
+    - name: Prepare versioned artifacts (Windows)
+      if: runner.os == 'Windows'
       run: |
-        VERSION="${{ github.event.inputs.version || '0.0.0' }}"
-        mkdir -p release
-        
-        # Windows executables
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-$VERSION-Windows.exe"
-          cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-$VERSION-Windows.exe"
-        # macOS/Linux binaries
-        else
-          cp dist/QRebuild-CLI "release/QRebuild-CLI-$VERSION-$RUNNER_OS"
-          cp dist/QRebuild-GUI "release/QRebuild-GUI-$VERSION-$RUNNER_OS"
-          chmod +x "release/QRebuild-"*"-$VERSION-$RUNNER_OS"
-        fi
+        cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-${{inputs.version}}-${{runner.os}}.exe"
+        cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-${{inputs.version}}-${{runner.os}}.exe"
+
+    - name: Prepare versioned artifacts (Windows)
+      if: runner.os != 'Windows'
+      run: |
+        cp dist/QRebuild-CLI "release/QRebuild-CLI-${{inputs.version}}-${{runner.os}}"
+        cp dist/QRebuild-GUI "release/QRebuild-GUI-${{inputs.version}}-${{runner.os}}"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

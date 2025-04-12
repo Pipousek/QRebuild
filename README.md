@@ -69,6 +69,104 @@ QRCodeRebuilder-CLI.exe -i receipt.jpg -o clean_qr.png -b 8 --border 2 -e Q
 | GUI Framework | PyQt6 |
 | EXE Packaging | PyInstaller |
 
+## Running From Python Code
+
+To run from source Python code you might need to install some dependencies base on your OS.
+
+### Windows
+
+On Windows OS this tools works only with Python packages. There is no need to install any external dependencies.
+
+> [!TIP]
+> Using Python Virtual Environment is recommended.
+
+``` bash
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r .\requirements.txt
+```
+
+After insalling all Python libraries run CLI or GUI app.
+
+``` bash
+python .\cli_main.py --help
+
+python .\gui_main.py
+```
+
+### Linux
+
+On Linux OS there are several dependenies that needs to be installed. Run this command to install them all.
+
+```bash
+sudo apt-get update &&
+sudo apt install -y \
+  binutils \
+  libgl1 \
+  libegl1 \
+  libzbar0 \
+  libgthread-2.0-0 \
+  libxcb-cursor0 \
+  libxcb-icccm4 \
+  libxcb-image0 \
+  libxcb-keysyms1 \
+  libxcb-render-util0 \
+  libxcb-xinerama0 \
+  libxkbcommon-x11-0 \
+  libqt6core6 libqt6gui6 libqt6widgets6 qt6-base-dev
+```
+
+After installing all dependencies install all Python libraries.
+
+> [!TIP]
+> Using Python Virtual Environment is recommended.
+
+``` bash
+python3 -m venv .venv
+source ./.venv/bin/activate
+pip install -r .\requirements.txt
+```
+
+After insalling all Python libraries run CLI or GUI app.
+
+``` bash
+python3 .\cli_main.py --help
+
+python3 .\gui_main.py
+```
+
+### macOS
+
+On macOS there are several dependenies that needs to be installed. Run this command to install them all.
+
+```bash
+brew install \
+  qt6 \
+  zbar \
+  opencv \
+  libxkbcommon \
+  libxcb
+```
+
+After installing all dependencies install all Python libraries.
+
+> [!TIP]
+> Using Python Virtual Environment is recommended.
+
+``` bash
+python3 -m venv .venv
+source ./.venv/bin/activate
+pip install -r .\requirements.txt
+```
+
+After insalling all Python libraries run CLI or GUI app.
+
+``` bash
+python3 .\cli_main.py --help
+
+python3 .\gui_main.py
+```
+
 ## Pro Tips
 
 * For printed QR codes: Use box size ≥15 and error correction H

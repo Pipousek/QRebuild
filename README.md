@@ -135,38 +135,6 @@ python3 .\cli_main.py --help
 python3 .\gui_main.py
 ```
 
-### macOS
-
-On macOS there are several dependenies that needs to be installed. Run this command to install them all.
-
-```bash
-brew install \
-  qt6 \
-  zbar \
-  opencv \
-  libxkbcommon \
-  libxcb
-```
-
-After installing all dependencies install all Python libraries.
-
-> [!TIP]
-> Using Python Virtual Environment is recommended.
-
-``` bash
-python3 -m venv .venv
-source ./.venv/bin/activate
-pip install -r .\requirements.txt
-```
-
-After insalling all Python libraries run CLI or GUI app.
-
-``` bash
-python3 .\cli_main.py --help
-
-python3 .\gui_main.py
-```
-
 ## Pro Tips
 
 * For printed QR codes: Use box size ≥15 and error correction H

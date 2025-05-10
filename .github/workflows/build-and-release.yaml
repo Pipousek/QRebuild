@@ -15,7 +15,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -38,8 +38,8 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Install Python dependencies (Linux/macOS)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
+    - name: Install Python dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         source .venv/bin/activate
         pip install --upgrade pip
@@ -63,16 +63,6 @@ jobs:
           libxcb-xinerama0 \
           libxkbcommon-x11-0 \
           libqt6core6 libqt6gui6 libqt6widgets6 qt6-base-dev
-    
-    - name: Install system dependencies (macOS only)
-      if: runner.os == 'macOS'
-      run: |
-        brew install \
-          qt6 \
-          zbar \
-          opencv \
-          libxkbcommon \
-          libxcb
 
     - name: Build application - CLI (Windows)
       if: runner.os == 'Windows'
@@ -132,34 +122,6 @@ jobs:
           --add-binary="/usr/lib/x86_64-linux-gnu/libzbar.so.0:." \
           --add-binary="/usr/lib/x86_64-linux-gnu/libEGL.so.1:." \
           --add-data="/home/runner/work/QRebuild/QRebuild/.venv/lib/python3.12/site-packages/PyQt6/Qt6/plugins/platforms:PyQt6/Qt6/plugins/platforms" \
-          --collect-all PyQt6 \
-          --name QRebuild-GUI
-
-    - name: Build application - CLI (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        source .venv/bin/activate
-        pyinstaller cli_main.py \
-          --onefile \
-          --icon="img/logo.icns" \
-          --add-data="core:core" \
-          --add-data="cli:cli" \
-          --add-data="img:img" \
-          --add-binary="/opt/homebrew/lib/libzbar.dylib:." \
-          --name QRebuild-CLI
-
-    - name: Build application - GUI (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        source .venv/bin/activate
-        export QT_PLUGIN_PATH="$(brew --prefix qt6)/plugins"
-        pyinstaller gui_main.py \
-          --onefile \
-          --windowed \
-          --icon="img/logo.icns" \
-          --add-data="core:core" \
-          --add-data="img:img" \
-          --add-binary="/opt/homebrew/lib/libzbar.dylib:." \
           --collect-all PyQt6 \
           --name QRebuild-GUI
 

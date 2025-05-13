@@ -7,6 +7,11 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - 'cli/**'
+      - 'core/**'
+      - '**/*.py'
+      - 'requirements.txt'
   workflow_dispatch:
     inputs:
       version:
@@ -165,7 +170,7 @@ jobs:
         cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-${{needs.determine-version.outputs.version}}-${{runner.os}}.exe"
         cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-${{needs.determine-version.outputs.version}}-${{runner.os}}.exe"
 
-    - name: Prepare versioned artifacts (Windows)
+    - name: Prepare versioned artifacts (Linux)
       if: runner.os != 'Windows'
       run: |
         mkdir -p release

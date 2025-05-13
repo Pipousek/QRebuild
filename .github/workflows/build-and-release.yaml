@@ -4,6 +4,9 @@ permissions:
   contents: write
 
 on:
+  push:
+    branches:
+      - 'main'
   workflow_dispatch:
     inputs:
       version:
@@ -12,7 +15,37 @@ on:
         default: '0.0.0'
 
 jobs:
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to fetch all tags
+
+      - name: Get latest tag and calculate version
+        id: set-version
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Using provided version: ${{ inputs.version }}"
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            # Get the latest semver tag
+            latest_tag=$(git tag --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+            echo "Latest tag: $latest_tag"
+            IFS='.' read -r major minor patch <<< "$latest_tag"
+            new_patch=$((patch + 1))
+            new_version="${major}.${minor}.${new_patch}"
+            echo "Auto-incremented version: $new_version"
+            echo "version=$new_version" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    needs: determine-version
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -129,15 +162,15 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         mkdir -p release
-        cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-${{inputs.version}}-${{runner.os}}.exe"
-        cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-${{inputs.version}}-${{runner.os}}.exe"
+        cp dist/QRebuild-CLI.exe "release/QRebuild-CLI-${{needs.determine-version.outputs.version}}-${{runner.os}}.exe"
+        cp dist/QRebuild-GUI.exe "release/QRebuild-GUI-${{needs.determine-version.outputs.version}}-${{runner.os}}.exe"
 
     - name: Prepare versioned artifacts (Windows)
       if: runner.os != 'Windows'
       run: |
         mkdir -p release
-        cp dist/QRebuild-CLI "release/QRebuild-CLI-${{inputs.version}}-${{runner.os}}"
-        cp dist/QRebuild-GUI "release/QRebuild-GUI-${{inputs.version}}-${{runner.os}}"
+        cp dist/QRebuild-CLI "release/QRebuild-CLI-${{needs.determine-version.outputs.version}}-${{runner.os}}"
+        cp dist/QRebuild-GUI "release/QRebuild-GUI-${{needs.determine-version.outputs.version}}-${{runner.os}}"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -146,9 +179,9 @@ jobs:
         path: release/
 
   create-release:
-    needs: build
+    needs: [ build, determine-version ]
     runs-on: ubuntu-latest
-    if: github.event.inputs.version != '0.0.0'
+    if: needs.determine-version.outputs.version != '0.0.0'
 
     steps:
     - name: Download all artifacts
@@ -159,8 +192,8 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.event.inputs.version }}
-        name: QRebuild ${{ github.event.inputs.version }}
+        tag_name: ${{ needs.determine-version.outputs.version }}
+        name: QRebuild ${{ needs.determine-version.outputs.version }}
         files: |
           artifacts/binaries-*/*
         draft: false

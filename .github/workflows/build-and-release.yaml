@@ -174,8 +174,8 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         mkdir -p release
-        chown +x dist/QRebuild-CLI
-        chown +x dist/QRebuild-GUI
+        chmod +x dist/QRebuild-CLI
+        chmod +x dist/QRebuild-GUI
         cp dist/QRebuild-CLI "release/QRebuild-CLI-${{needs.determine-version.outputs.version}}-${{runner.os}}"
         cp dist/QRebuild-GUI "release/QRebuild-GUI-${{needs.determine-version.outputs.version}}-${{runner.os}}"
 
